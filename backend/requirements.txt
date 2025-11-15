@@ -15,3 +15,8 @@ psycopg2-binary==2.9.9
 tenacity==8.2.3
 numpy==1.26.2
 networkx==3.2.1
+anthropic==0.18.0
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+docker==7.0.0
