@@ -13,11 +13,15 @@ class Settings(BaseSettings):
     APP_NAME: str = "Agent Foundry"
     DEBUG: bool = False
     
-    # API Keys
-    FASTINO_API_KEY: str = "fastino_dev_key"
-    FREEPIK_API_KEY: str = "freepik_dev_key"
-    FRONTEGG_API_KEY: str = "frontegg_dev_key"
-    AIRIA_API_KEY: str = "airia_dev_key"
+    # API Keys - REQUIRED
+    ANTHROPIC_API_KEY: str  # Required, no default
+    
+    # API Keys - OPTIONAL (for sponsor integrations)
+    FASTINO_API_KEY: str = ""
+    FREEPIK_API_KEY: str = ""
+    FRONTEGG_API_KEY: str = ""
+    AIRIA_API_KEY: str = ""
+    RAINDROP_API_KEY: str = ""
     
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
