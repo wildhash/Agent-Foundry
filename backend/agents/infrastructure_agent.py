@@ -226,19 +226,19 @@ class InfrastructureAgent:
                 timeout=2
             )
             permissions["sudo"] = result.returncode == 0
-        except:
+        except Exception:
             pass
             
         try:
             subprocess.run(["systemctl", "--version"], capture_output=True, timeout=2)
             permissions["systemctl"] = True
-        except:
+        except Exception:
             pass
             
         try:
             subprocess.run(["apt-get", "--version"], capture_output=True, timeout=2)
             permissions["apt"] = True
-        except:
+        except Exception:
             pass
             
         permissions["disk_cleanup"] = shutil.which("find") is not None
