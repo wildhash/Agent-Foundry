@@ -80,7 +80,8 @@ class AgentWorker:
                     # Self-heal: increment error counter but keep running
                     try:
                         r.hincrby(f"worker:{self.agent_id}", "error_count", 1)
-                    except:
+                    except Exception:
+                        # Ignore errors updating error_count in Redis to ensure worker stays alive
                         pass
                     time.sleep(1)  # Brief pause before continuing
                     
