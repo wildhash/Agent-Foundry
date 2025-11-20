@@ -1,72 +1,87 @@
 """
-Agent Foundry - Self-Evolving Agent System
-Main FastAPI application entry point
+Agent Foundry - Persistent Agent Cluster
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 import logging
+from contextlib import asynccontextmanager
 
-try:
-    from .agents.orchestrator import AgentOrchestrator
-    from .routers import agents, evolution, metrics, deployment
-    from .config import settings
-except ImportError:
-    from agents.orchestrator import AgentOrchestrator
-    from routers import agents, evolution, metrics, deployment
-    from config import settings
+from agents.worker_pool import agent_pool
+from agents.infrastructure_agent import infra_agent
+from routers import cluster
 
-logging.basicConfig(level=logging.INFO)
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Manage application lifecycle"""
-    logger.info("Starting Agent Foundry...")
-    app.state.orchestrator = AgentOrchestrator()
+    """Startup and shutdown events"""
+    # Startup
+    logger.info("🚀 Starting Agent Foundry Cluster...")
+    await agent_pool.initialize()
+    await infra_agent.start()
+    logger.info("✅ Cluster online and self-healing enabled")
+    
     yield
-    logger.info("Shutting down Agent Foundry...")
+    
+    # Shutdown
+    logger.info("🛑 Shutting down cluster...")
+    await agent_pool.shutdown()
+    await infra_agent.stop()
+    logger.info("✅ Graceful shutdown complete")
 
 
 app = FastAPI(
-    title="Agent Foundry",
-    description="Self-evolving agents with architect→coder→executor→critic→deployer pipeline",
+    title="Agent Foundry Cluster",
+    description="Self-evolving agent system with persistent workers",
     version="1.0.0",
     lifespan=lifespan
 )
 
-# CORS middleware
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=["*"],  # Update for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
-app.include_router(agents.router, prefix="/api/agents", tags=["agents"])
-app.include_router(evolution.router, prefix="/api/evolution", tags=["evolution"])
-app.include_router(metrics.router, prefix="/api/metrics", tags=["metrics"])
-app.include_router(deployment.router, prefix="/api/deployment", tags=["deployment"])
+app.include_router(cluster.router)
 
 
 @app.get("/")
 async def root():
-    """Root endpoint"""
+    """Health check and cluster overview"""
+    status = agent_pool.get_status()
+    
     return {
-        "name": "Agent Foundry",
+        "message": "🤖 Agent Foundry Cluster Online",
         "version": "1.0.0",
-        "description": "The last agent you'll ever need to build"
+        "cluster": {
+            "workers": status["cluster"]["total_workers"],
+            "healthy": status["cluster"]["healthy_workers"]
+        },
+        "infrastructure_monitoring": infra_agent.is_running,
+        "docs": "/docs"
     }
 
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
+    """Detailed health check for monitoring"""
+    return {
+        "status": "healthy",
+        "cluster_initialized": agent_pool.is_initialized,
+        "infrastructure_agent": infra_agent.is_running
+    }
 
 
 if __name__ == "__main__":
