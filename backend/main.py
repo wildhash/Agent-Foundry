@@ -13,8 +13,7 @@ from routers import cluster
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -27,9 +26,9 @@ async def lifespan(app: FastAPI):
     await agent_pool.initialize()
     await infra_agent.start()
     logger.info("✅ Cluster online and self-healing enabled")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("🛑 Shutting down cluster...")
     await agent_pool.shutdown()
@@ -41,7 +40,7 @@ app = FastAPI(
     title="Agent Foundry Cluster",
     description="Self-evolving agent system with persistent workers",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # CORS
@@ -61,16 +60,16 @@ app.include_router(cluster.router)
 async def root():
     """Health check and cluster overview"""
     status = agent_pool.get_status()
-    
+
     return {
         "message": "🤖 Agent Foundry Cluster Online",
         "version": "1.0.0",
         "cluster": {
             "workers": status["cluster"]["total_workers"],
-            "healthy": status["cluster"]["healthy_workers"]
+            "healthy": status["cluster"]["healthy_workers"],
         },
         "infrastructure_monitoring": infra_agent.is_running,
-        "docs": "/docs"
+        "docs": "/docs",
     }
 
 
@@ -80,10 +79,11 @@ async def health_check():
     return {
         "status": "healthy",
         "cluster_initialized": agent_pool.is_initialized,
-        "infrastructure_agent": infra_agent.is_running
+        "infrastructure_agent": infra_agent.is_running,
     }
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

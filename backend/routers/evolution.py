@@ -12,11 +12,11 @@ router = APIRouter()
 async def get_evolution_tree(request: Request):
     """
     Get the complete evolution tree
-    
+
     Shows agent lineage and performance across generations
     """
     orchestrator = request.app.state.orchestrator
-    
+
     try:
         tree = orchestrator.get_evolution_tree()
         return tree
@@ -28,7 +28,7 @@ async def get_evolution_tree(request: Request):
 async def get_tree_stats(request: Request):
     """Get evolution tree statistics"""
     orchestrator = request.app.state.orchestrator
-    
+
     try:
         tree = orchestrator.evolution_tree
         return tree.get_stats()
@@ -40,7 +40,7 @@ async def get_tree_stats(request: Request):
 async def get_generation(generation_num: int, request: Request):
     """Get all agents in a specific generation"""
     orchestrator = request.app.state.orchestrator
-    
+
     try:
         tree = orchestrator.evolution_tree
         generation = tree.get_generation(generation_num)
@@ -53,7 +53,7 @@ async def get_generation(generation_num: int, request: Request):
 async def get_best_performers(top_n: int = 10, request: Request = None):
     """Get top performing agents"""
     orchestrator = request.app.state.orchestrator
-    
+
     try:
         tree = orchestrator.evolution_tree
         performers = tree.get_best_performers(top_n)
@@ -66,17 +66,13 @@ async def get_best_performers(top_n: int = 10, request: Request = None):
 async def get_agent_lineage(agent_id: str, request: Request):
     """Get complete lineage of an agent"""
     orchestrator = request.app.state.orchestrator
-    
+
     try:
         tree = orchestrator.evolution_tree
         lineage = tree.get_lineage(agent_id)
         descendants = tree.get_descendants(agent_id)
-        
-        return {
-            "agent_id": agent_id,
-            "ancestors": lineage,
-            "descendants": descendants
-        }
+
+        return {"agent_id": agent_id, "ancestors": lineage, "descendants": descendants}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -85,15 +81,15 @@ async def get_agent_lineage(agent_id: str, request: Request):
 async def get_improvement_rate(agent_id: str, request: Request):
     """Get performance improvement rate for an agent's lineage"""
     orchestrator = request.app.state.orchestrator
-    
+
     try:
         tree = orchestrator.evolution_tree
         rate = tree.calculate_improvement_rate(agent_id)
-        
+
         return {
             "agent_id": agent_id,
             "improvement_rate": rate,
-            "improvement_percentage": rate * 100
+            "improvement_percentage": rate * 100,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
