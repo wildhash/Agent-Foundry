@@ -15,54 +15,54 @@ class FastinoTLM:
     Fastino Transformer Language Model
     Provides 99x faster inference compared to standard models
     """
-    
+
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key
         self.speed_multiplier = 99
         self.batch_size = 32
         self.cache = {}
-        
+
     async def generate(
         self,
         prompt: str,
         max_tokens: int = 2048,
         temperature: float = 0.7,
-        top_p: float = 0.9
+        top_p: float = 0.9,
     ) -> str:
         """
         Generate text using Fastino TLM
-        
+
         Args:
             prompt: Input prompt
             max_tokens: Maximum tokens to generate
             temperature: Sampling temperature
             top_p: Nucleus sampling parameter
-            
+
         Returns:
             Generated text
         """
         logger.info(f"Fastino TLM generating (speed: {self.speed_multiplier}x)")
-        
+
         # Check cache first
         cache_key = f"{prompt[:50]}_{max_tokens}_{temperature}"
         if cache_key in self.cache:
             logger.info("Returning cached result")
             return self.cache[cache_key]
-        
+
         # Simulate fast inference (0.01s vs 1s for standard models)
         await asyncio.sleep(0.01)
-        
+
         # Mock generation based on prompt type
         result = self._mock_generate(prompt, max_tokens)
-        
+
         # Cache result
         self.cache[cache_key] = result
-        
+
         return result
-    
+
     def _mock_generate(self, prompt: str, max_tokens: int) -> str:
         """Mock text generation for development"""
-        
+
         if "design a system" in prompt.lower():
             return """
 # System Architecture Design
@@ -177,30 +177,27 @@ The implementation is solid with room for minor improvements.
 """
         else:
             return f"Generated response for: {prompt[:100]}..."
-    
+
     async def batch_generate(
-        self,
-        prompts: List[str],
-        max_tokens: int = 2048,
-        temperature: float = 0.7
+        self, prompts: List[str], max_tokens: int = 2048, temperature: float = 0.7
     ) -> List[str]:
         """
         Batch generation for multiple prompts
         More efficient than individual calls
         """
         logger.info(f"Fastino TLM batch generating {len(prompts)} prompts")
-        
+
         results = []
         for prompt in prompts:
             result = await self.generate(prompt, max_tokens, temperature)
             results.append(result)
-            
+
         return results
-    
+
     def get_stats(self) -> Dict[str, Any]:
         """Get usage statistics"""
         return {
             "cache_size": len(self.cache),
             "speed_multiplier": self.speed_multiplier,
-            "batch_size": self.batch_size
+            "batch_size": self.batch_size,
         }

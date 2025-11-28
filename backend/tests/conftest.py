@@ -35,7 +35,7 @@ def test_config():
         "REDIS_URL": "redis://localhost:6379",
         "MAX_REFLEXION_LOOPS": 3,
         "PERFORMANCE_THRESHOLD": 0.75,
-        "EVOLUTION_THRESHOLD": 0.85
+        "EVOLUTION_THRESHOLD": 0.85,
     }
 
 
@@ -45,5 +45,5 @@ async def mock_claude_response():
     return {
         "content": [{"text": "Mock Claude response"}],
         "model": "claude-sonnet-4-20250514",
-        "role": "assistant"
+        "role": "assistant",
     }

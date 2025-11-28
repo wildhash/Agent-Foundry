@@ -13,6 +13,7 @@ router = APIRouter()
 
 class DeploymentConfig(BaseModel):
     """Deployment configuration model"""
+
     agent_id: str
     environment: str = "production"
     replicas: int = 3
@@ -20,6 +21,7 @@ class DeploymentConfig(BaseModel):
 
 class ScaleRequest(BaseModel):
     """Scale request model"""
+
     replicas: int
 
 
@@ -27,19 +29,18 @@ class ScaleRequest(BaseModel):
 async def deploy_agent(config: DeploymentConfig):
     """
     Deploy an agent using Airia enterprise deployment
-    
+
     Args:
         config: Deployment configuration
-        
+
     Returns:
         Deployment information
     """
     airia = AiriaDeployment()
-    
+
     try:
         result = await airia.deploy_agent(
-            agent_config=config.dict(),
-            environment=config.environment
+            agent_config=config.dict(), environment=config.environment
         )
         return result
     except Exception as e:
@@ -50,7 +51,7 @@ async def deploy_agent(config: DeploymentConfig):
 async def scale_deployment(deployment_id: str, scale_request: ScaleRequest):
     """Scale a deployment"""
     airia = AiriaDeployment()
-    
+
     try:
         result = await airia.scale_deployment(deployment_id, scale_request.replicas)
         return result
@@ -62,7 +63,7 @@ async def scale_deployment(deployment_id: str, scale_request: ScaleRequest):
 async def get_deployment_metrics(deployment_id: str):
     """Get metrics for a specific deployment"""
     airia = AiriaDeployment()
-    
+
     try:
         metrics = await airia.get_deployment_metrics(deployment_id)
         return metrics
@@ -74,7 +75,7 @@ async def get_deployment_metrics(deployment_id: str):
 async def stop_deployment(deployment_id: str):
     """Stop a deployment"""
     airia = AiriaDeployment()
-    
+
     try:
         result = await airia.stop_deployment(deployment_id)
         return result
@@ -86,12 +87,12 @@ async def stop_deployment(deployment_id: str):
 async def list_deployments():
     """List all deployments"""
     airia = AiriaDeployment()
-    
+
     try:
         stats = airia.get_stats()
         return {
             "total_deployments": stats["total_deployments"],
-            "active_deployments": stats["active_deployments"]
+            "active_deployments": stats["active_deployments"],
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
