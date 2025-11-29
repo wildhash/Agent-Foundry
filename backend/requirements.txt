@@ -13,7 +13,7 @@ alembic==1.13.0
 asyncpg==0.29.0
 psycopg2-binary==2.9.9
 tenacity==9.1.2
-numpy==1.26.2
+numpy==2.3.5
 networkx==3.2.1
 anthropic==0.18.0
 pytest==7.4.3
