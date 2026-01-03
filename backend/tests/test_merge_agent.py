@@ -209,9 +209,7 @@ async def test_merge_agent_get_criteria():
 
 
 @pytest.mark.asyncio
-async def test_merge_agent_with_mocked_github(
-    mock_github_client, mock_github_repo, mock_github_pr
-):
+async def test_merge_agent_with_mocked_github(mock_github_client, mock_github_repo, mock_github_pr):
     """Test merge agent with mocked GitHub API"""
     from agents.merge_agent import MergeAgent
 
