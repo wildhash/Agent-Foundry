@@ -2,7 +2,7 @@
 Merge agent for automated PR management and branch cleanup
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 import logging
 import os
 from datetime import datetime, timedelta
@@ -145,7 +145,7 @@ class MergeAgent(BaseAgent):
             logger.error(f"Error processing pull requests: {str(e)}")
             result["errors"].append(f"PR processing error: {str(e)}")
 
-    async def _check_pr_eligibility(self, pr) -> tuple[bool, str]:
+    async def _check_pr_eligibility(self, pr) -> Tuple[bool, str]:
         """
         Check if a PR is eligible for automatic merging.
 
@@ -190,7 +190,7 @@ class MergeAgent(BaseAgent):
 
         return True, "eligible"
 
-    async def _check_ci_status(self, pr) -> tuple[bool, str]:
+    async def _check_ci_status(self, pr) -> Tuple[bool, str]:
         """Check CI/status checks for a PR"""
         try:
             # Get the latest commit
