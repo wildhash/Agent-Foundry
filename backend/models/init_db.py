@@ -141,9 +141,7 @@ try:
     async def get_async_db() -> AsyncSession:
         """Get async database session"""
         async_engine = await create_async_db_engine()
-        AsyncSessionLocal = async_sessionmaker(
-            async_engine, class_=AsyncSession, expire_on_commit=False
-        )
+        AsyncSessionLocal = async_sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
         async with AsyncSessionLocal() as session:
             yield session
 

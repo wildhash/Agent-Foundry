@@ -49,9 +49,7 @@ class AgentWorker:
 
         try:
             r = redis.Redis(host="localhost", port=6379, decode_responses=True)
-            logger.info(
-                f"🤖 {self.agent_type} worker {self.agent_id} started (PID: {multiprocessing.current_process().pid})"
-            )
+            logger.info(f"🤖 {self.agent_type} worker {self.agent_id} started (PID: {multiprocessing.current_process().pid})")
 
             while True:
                 try:
@@ -60,9 +58,7 @@ class AgentWorker:
 
                     if task:
                         task_data = json.loads(task[1])
-                        logger.info(
-                            f"🎯 {self.agent_type} processing task: {task_data.get('task_id', 'unknown')}"
-                        )
+                        logger.info(f"🎯 {self.agent_type} processing task: {task_data.get('task_id', 'unknown')}")
 
                         result = self._execute_task(task_data)
 
@@ -248,9 +244,7 @@ class AgentPool:
                     "status": worker.status,
                     "pid": worker.process.pid if worker.process else None,
                     "healthy": worker.is_healthy(),
-                    "started_at": (
-                        worker.started_at.isoformat() if worker.started_at else None
-                    ),
+                    "started_at": (worker.started_at.isoformat() if worker.started_at else None),
                     **worker.get_stats(),
                 }
                 for worker_id, worker in self.workers.items()

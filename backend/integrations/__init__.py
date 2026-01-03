@@ -75,9 +75,7 @@ class FreepikAPI:
         prompt = prompts.get(agent_type, "AI agent avatar")
         return await self.generate_image(prompt, style="modern", size="512x512")
 
-    async def generate_evolution_tree_visualization(
-        self, tree_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def generate_evolution_tree_visualization(self, tree_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate visualization for evolution tree"""
         prompt = "AI agent evolution tree with glowing nodes and connections, tech visualization"
         return await self.generate_image(prompt, style="abstract", size="1920x1080")
@@ -176,9 +174,7 @@ class AiriaDeployment:
         self.api_key = api_key
         self.deployments = {}
 
-    async def deploy_agent(
-        self, agent_config: Dict[str, Any], environment: str = "production"
-    ) -> Dict[str, Any]:
+    async def deploy_agent(self, agent_config: Dict[str, Any], environment: str = "production") -> Dict[str, Any]:
         """
         Deploy agent to enterprise environment
 
@@ -214,9 +210,7 @@ class AiriaDeployment:
         self.deployments[deployment_id] = deployment
         return deployment
 
-    async def scale_deployment(
-        self, deployment_id: str, replicas: int
-    ) -> Dict[str, Any]:
+    async def scale_deployment(self, deployment_id: str, replicas: int) -> Dict[str, Any]:
         """Scale deployment replicas"""
         if deployment_id not in self.deployments:
             return {"success": False, "error": "Deployment not found"}

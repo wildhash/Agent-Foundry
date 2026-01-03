@@ -35,24 +35,16 @@ class Pipeline(Base):
         default=lambda: f"pipeline_{uuid.uuid4().hex[:8]}",
     )
     task_description = Column(Text, nullable=False)
-    status = Column(
-        String(50), nullable=False, default="initialized"
-    )  # initialized, running, completed, failed
+    status = Column(String(50), nullable=False, default="initialized")  # initialized, running, completed, failed
     overall_score = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     completed_at = Column(DateTime, nullable=True)
     error_message = Column(Text, nullable=True)
-    extra_data = Column(
-        JSON, nullable=True
-    )  # Renamed from 'metadata' to avoid SQLAlchemy conflict
+    extra_data = Column(JSON, nullable=True)  # Renamed from 'metadata' to avoid SQLAlchemy conflict
 
     # Relationships
-    agent_executions = relationship(
-        "AgentExecution", back_populates="pipeline", cascade="all, delete-orphan"
-    )
+    agent_executions = relationship("AgentExecution", back_populates="pipeline", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Pipeline(id={self.id}, status={self.status}, score={self.overall_score})>"
@@ -66,14 +58,10 @@ class AgentExecution(Base):
 
     __tablename__ = "agent_executions"
 
-    id = Column(
-        String(100), primary_key=True, default=lambda: f"exec_{uuid.uuid4().hex[:8]}"
-    )
+    id = Column(String(100), primary_key=True, default=lambda: f"exec_{uuid.uuid4().hex[:8]}")
     pipeline_id = Column(String(100), ForeignKey("pipelines.id"), nullable=False)
     agent_id = Column(String(100), nullable=False)
-    agent_type = Column(
-        String(50), nullable=False
-    )  # architect, coder, executor, critic, deployer
+    agent_type = Column(String(50), nullable=False)  # architect, coder, executor, critic, deployer
     generation = Column(Integer, default=0, nullable=False)
 
     # Execution results
@@ -122,9 +110,7 @@ class EvolutionNode(Base):
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    extra_data = Column(
-        JSON, nullable=True
-    )  # Renamed from 'metadata' to avoid SQLAlchemy conflict
+    extra_data = Column(JSON, nullable=True)  # Renamed from 'metadata' to avoid SQLAlchemy conflict
 
     def __repr__(self):
         return f"<EvolutionNode(id={self.id}, gen={self.generation}, score={self.performance_score})>"
@@ -147,12 +133,8 @@ class HealingAction(Base):
 
     __tablename__ = "healing_actions"
 
-    id = Column(
-        String(100), primary_key=True, default=lambda: f"heal_{uuid.uuid4().hex[:8]}"
-    )
-    agent_execution_id = Column(
-        String(100), ForeignKey("agent_executions.id"), nullable=True
-    )
+    id = Column(String(100), primary_key=True, default=lambda: f"heal_{uuid.uuid4().hex[:8]}")
+    agent_execution_id = Column(String(100), ForeignKey("agent_executions.id"), nullable=True)
 
     # Healing details
     issue_type = Column(String(100), nullable=False)

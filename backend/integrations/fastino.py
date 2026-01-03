@@ -178,9 +178,7 @@ The implementation is solid with room for minor improvements.
         else:
             return f"Generated response for: {prompt[:100]}..."
 
-    async def batch_generate(
-        self, prompts: List[str], max_tokens: int = 2048, temperature: float = 0.7
-    ) -> List[str]:
+    async def batch_generate(self, prompts: List[str], max_tokens: int = 2048, temperature: float = 0.7) -> List[str]:
         """
         Batch generation for multiple prompts
         More efficient than individual calls
