@@ -47,6 +47,11 @@ class Settings(BaseSettings):
     RAINDROP_MAX_ATTEMPTS: int = 3
     RAINDROP_HEAL_TIMEOUT: int = 30
 
+    # GitHub Integration (for Merge Agent)
+    GITHUB_TOKEN: str = ""
+    GITHUB_REPO_OWNER: str = ""
+    GITHUB_REPO_NAME: str = ""
+
     class Config:
         env_file = ".env"
         case_sensitive = True
