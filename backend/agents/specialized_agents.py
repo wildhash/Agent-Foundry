@@ -153,22 +153,37 @@ class ExecutorAgent(BaseAgent):
         super().__init__(agent_id, "executor")
         self.execution_env = "sandboxed"
 
+        # Import sandbox service
+        from services.sandbox import sandbox_service
+
+        self.sandbox = sandbox_service
+
     async def execute(self, task: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute code and collect results"""
+        """Execute code in sandboxed environment"""
         logger.info(f"Executor running code: {task.get('description', 'N/A')}")
 
         code = task.get("code", "")
 
-        # Simulate code execution (in production, use actual sandbox)
-        execution_result = {
-            "success": True,
-            "output": f"Execution completed for {len(code)} characters of code",
-            "execution_time": 0.125,
-            "memory_used": 1024 * 1024,  # 1MB
-            "exit_code": 0,
-        }
+        if not code.strip():
+            return {
+                "success": False,
+                "output": "",
+                "error": "No code provided",
+                "execution_time": 0,
+                "exit_code": -1,
+            }
 
-        return execution_result
+        # Execute in sandbox
+        result = await self.sandbox.execute_python(code)
+
+        return {
+            "success": result.success,
+            "output": result.stdout,
+            "error": result.stderr,
+            "execution_time": result.execution_time_ms / 1000,  # Convert to seconds
+            "memory_used": result.memory_used_bytes or 0,
+            "exit_code": result.exit_code,
+        }
 
     async def evaluate_performance(self, result: Dict[str, Any]) -> float:
         """Evaluate execution success"""
