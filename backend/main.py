@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from agents.worker_pool import agent_pool
 from agents.infrastructure_agent import infra_agent
 from agents.orchestrator import AgentOrchestrator
-from routers import cluster, agents, evolution, metrics, deployment
+from routers import cluster, agents, evolution, metrics, deployment, ws
 
 # Configure logging
 logging.basicConfig(
@@ -65,6 +65,7 @@ app.include_router(agents.router, prefix="/api/agents", tags=["Agents"])
 app.include_router(evolution.router, prefix="/api/evolution", tags=["Evolution"])
 app.include_router(metrics.router, prefix="/api/metrics", tags=["Metrics"])
 app.include_router(deployment.router, prefix="/api/deployment", tags=["Deployment"])
+app.include_router(ws.router, prefix="/api/ws", tags=["WebSocket"])
 
 
 @app.get("/")
