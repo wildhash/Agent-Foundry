@@ -107,9 +107,7 @@ def test_agent_execution_reflexion_tracking(test_db):
 def test_evolution_node_creation_and_queries(test_db):
     """Test evolution node creation and parent-child linkage"""
     # Create parent node
-    parent = EvolutionNode(
-        id="agent_gen0", agent_type="architect", generation=0, performance_score=0.75
-    )
+    parent = EvolutionNode(id="agent_gen0", agent_type="architect", generation=0, performance_score=0.75)
     test_db.add(parent)
     test_db.flush()
 
@@ -169,9 +167,7 @@ def test_healing_action_tracking(test_db):
     test_db.add(pipeline)
     test_db.flush()
 
-    execution = AgentExecution(
-        pipeline_id=pipeline.id, agent_id="coder_001", agent_type="coder"
-    )
+    execution = AgentExecution(pipeline_id=pipeline.id, agent_id="coder_001", agent_type="coder")
     test_db.add(execution)
     test_db.flush()
 
@@ -201,9 +197,7 @@ def test_pipeline_cascade_delete(test_db):
     test_db.add(pipeline)
     test_db.flush()
 
-    execution = AgentExecution(
-        pipeline_id=pipeline.id, agent_id="test_agent", agent_type="architect"
-    )
+    execution = AgentExecution(pipeline_id=pipeline.id, agent_id="test_agent", agent_type="architect")
     test_db.add(execution)
     test_db.commit()
 
@@ -236,19 +230,13 @@ def test_pipeline_status_enum(test_db):
 def test_query_performance_filtering(test_db):
     """Test querying by performance score"""
     # Create pipelines with different scores
-    high_score = Pipeline(
-        task_description="High performer", status="completed", overall_score=0.95
-    )
-    low_score = Pipeline(
-        task_description="Low performer", status="completed", overall_score=0.65
-    )
+    high_score = Pipeline(task_description="High performer", status="completed", overall_score=0.95)
+    low_score = Pipeline(task_description="Low performer", status="completed", overall_score=0.65)
     test_db.add_all([high_score, low_score])
     test_db.commit()
 
     # Query high performers
-    high_performers = (
-        test_db.query(Pipeline).filter(Pipeline.overall_score >= 0.85).all()
-    )
+    high_performers = test_db.query(Pipeline).filter(Pipeline.overall_score >= 0.85).all()
 
     assert len(high_performers) >= 1
     assert all(p.overall_score >= 0.85 for p in high_performers)

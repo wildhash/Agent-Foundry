@@ -247,10 +247,7 @@ class EvolutionTree:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get tree statistics"""
-        scores = [
-            data.get("performance_score", 0.0)
-            for _, data in self.graph.nodes(data=True)
-        ]
+        scores = [data.get("performance_score", 0.0) for _, data in self.graph.nodes(data=True)]
 
         return {
             "total_nodes": self.graph.number_of_nodes(),

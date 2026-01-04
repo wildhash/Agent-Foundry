@@ -38,9 +38,7 @@ class AgentOrchestrator:
         pipeline_id = f"pipeline_{self.pipeline_counter}"
         self.pipeline_counter += 1
 
-        logger.info(
-            f"Creating pipeline {pipeline_id} for task: {task.get('description', 'N/A')}"
-        )
+        logger.info(f"Creating pipeline {pipeline_id} for task: {task.get('description', 'N/A')}")
 
         # Spawn agents for this pipeline
         agents = {
@@ -192,10 +190,7 @@ class AgentOrchestrator:
             "pipeline_id": pipeline_id,
             "status": pipeline["status"],
             "created_at": pipeline["created_at"].isoformat(),
-            "agents": {
-                agent_type: agent.to_dict()
-                for agent_type, agent in pipeline["agents"].items()
-            },
+            "agents": {agent_type: agent.to_dict() for agent_type, agent in pipeline["agents"].items()},
             "results": pipeline.get("results", {}),
         }
 

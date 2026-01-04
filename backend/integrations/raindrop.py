@@ -78,9 +78,7 @@ class LiquidMetalRaindrop:
             # Check for common Python issues
 
             # Missing imports
-            if "import " not in code and (
-                "List" in code or "Dict" in code or "Any" in code
-            ):
+            if "import " not in code and ("List" in code or "Dict" in code or "Any" in code):
                 issues.append(
                     {
                         "type": "missing_import",
@@ -101,9 +99,7 @@ class LiquidMetalRaindrop:
 
             # Inconsistent indentation (simplified check)
             lines = code.split("\n")
-            indent_levels = [
-                len(line) - len(line.lstrip()) for line in lines if line.strip()
-            ]
+            indent_levels = [len(line) - len(line.lstrip()) for line in lines if line.strip()]
             if indent_levels and any(i % 4 != 0 for i in indent_levels):
                 issues.append(
                     {
@@ -138,20 +134,14 @@ class LiquidMetalRaindrop:
                     if "async def" in line:
                         in_async_func = True
                         new_lines.append(line)
-                    elif (
-                        in_async_func
-                        and line.strip()
-                        and not line.strip().startswith("#")
-                    ):
+                    elif in_async_func and line.strip() and not line.strip().startswith("#"):
                         if "try:" not in line:
                             # Add try block
                             indent = len(line) - len(line.lstrip())
                             new_lines.append(" " * indent + "try:")
                             new_lines.append(" " * (indent + 4) + line.strip())
                             new_lines.append(" " * indent + "except Exception as e:")
-                            new_lines.append(
-                                " " * (indent + 4) + "logger.error(f'Error: {e}')"
-                            )
+                            new_lines.append(" " * (indent + 4) + "logger.error(f'Error: {e}')")
                             new_lines.append(" " * (indent + 4) + "raise")
                             in_async_func = False
                         else:
@@ -179,9 +169,7 @@ class LiquidMetalRaindrop:
 
         return code
 
-    async def validate_code(
-        self, code: str, language: str = "python"
-    ) -> Dict[str, Any]:
+    async def validate_code(self, code: str, language: str = "python") -> Dict[str, Any]:
         """
         Validate code without healing
 
@@ -200,9 +188,7 @@ class LiquidMetalRaindrop:
             },
         }
 
-    async def heal_and_validate(
-        self, code: str, language: str = "python"
-    ) -> Dict[str, Any]:
+    async def heal_and_validate(self, code: str, language: str = "python") -> Dict[str, Any]:
         """
         Heal code and return validation results
 
@@ -216,8 +202,7 @@ class LiquidMetalRaindrop:
             "original_code": code,
             "healed_code": healed_code,
             "validation": validation,
-            "improved": len(validation["issues"])
-            < len(await self._detect_issues(code, language)),
+            "improved": len(validation["issues"]) < len(await self._detect_issues(code, language)),
         }
 
     def get_heal_history(self) -> List[Dict[str, Any]]:
@@ -232,8 +217,6 @@ class LiquidMetalRaindrop:
         return {
             "total_sessions": total_sessions,
             "total_issues_fixed": total_issues,
-            "average_issues_per_session": (
-                total_issues / total_sessions if total_sessions > 0 else 0
-            ),
+            "average_issues_per_session": (total_issues / total_sessions if total_sessions > 0 else 0),
             "auto_heal_enabled": self.auto_heal,
         }

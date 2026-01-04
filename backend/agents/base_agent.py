@@ -69,9 +69,7 @@ class BaseAgent(ABC):
         """Evaluate the performance of the execution"""
         pass
 
-    async def reflexion_loop(
-        self, task: Dict[str, Any], max_loops: int = 5
-    ) -> Dict[str, Any]:
+    async def reflexion_loop(self, task: Dict[str, Any], max_loops: int = 5) -> Dict[str, Any]:
         """
         Perform reflexion loop: execute → evaluate → reflect → improve
         """
@@ -79,9 +77,7 @@ class BaseAgent(ABC):
         best_score = 0.0
 
         for loop in range(max_loops):
-            logger.info(
-                f"{self.agent_type} {self.agent_id} - Reflexion loop {loop + 1}/{max_loops}"
-            )
+            logger.info(f"{self.agent_type} {self.agent_id} - Reflexion loop {loop + 1}/{max_loops}")
 
             self.status = AgentStatus.EXECUTING
             result = await self.execute(task)
@@ -167,8 +163,7 @@ class BaseAgent(ABC):
             }
 
         return {
-            "average_score": sum(self.performance_scores)
-            / len(self.performance_scores),
+            "average_score": sum(self.performance_scores) / len(self.performance_scores),
             "best_score": max(self.performance_scores),
             "worst_score": min(self.performance_scores),
             "total_executions": len(self.performance_scores),

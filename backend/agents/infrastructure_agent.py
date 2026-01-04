@@ -157,9 +157,7 @@ class InfrastructureAgent:
         """Attempt to start Redis"""
         try:
             # Try starting Redis
-            result = subprocess.run(
-                ["sudo", "systemctl", "start", "redis"], capture_output=True, timeout=10
-            )
+            result = subprocess.run(["sudo", "systemctl", "start", "redis"], capture_output=True, timeout=10)
 
             await asyncio.sleep(2)
             return await self._is_redis_running()
@@ -173,9 +171,7 @@ class InfrastructureAgent:
         try:
             # Clear PageCache, dentries, and inodes
             subprocess.run(["sudo", "sync"], timeout=5)
-            subprocess.run(
-                ["sudo", "sh", "-c", "echo 3 > /proc/sys/vm/drop_caches"], timeout=5
-            )
+            subprocess.run(["sudo", "sh", "-c", "echo 3 > /proc/sys/vm/drop_caches"], timeout=5)
             logger.info("✅ Cleared memory caches")
             return True
         except Exception as e:
@@ -186,14 +182,10 @@ class InfrastructureAgent:
         """Clean up disk space"""
         try:
             # Remove old logs
-            subprocess.run(
-                ["find", "/tmp", "-type", "f", "-mtime", "+1", "-delete"], timeout=10
-            )
+            subprocess.run(["find", "/tmp", "-type", "f", "-mtime", "+1", "-delete"], timeout=10)
 
             # Clean apt cache if available
-            subprocess.run(
-                ["sudo", "apt-get", "clean"], capture_output=True, timeout=10
-            )
+            subprocess.run(["sudo", "apt-get", "clean"], capture_output=True, timeout=10)
 
             logger.info("✅ Cleaned up disk space")
             return True
@@ -215,9 +207,7 @@ class InfrastructureAgent:
         }
 
         try:
-            result = subprocess.run(
-                ["sudo", "-n", "echo", "test"], capture_output=True, timeout=2
-            )
+            result = subprocess.run(["sudo", "-n", "echo", "test"], capture_output=True, timeout=2)
             permissions["sudo"] = result.returncode == 0
         except Exception:
             pass

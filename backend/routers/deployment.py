@@ -39,9 +39,7 @@ async def deploy_agent(config: DeploymentConfig):
     airia = AiriaDeployment()
 
     try:
-        result = await airia.deploy_agent(
-            agent_config=config.dict(), environment=config.environment
-        )
+        result = await airia.deploy_agent(agent_config=config.dict(), environment=config.environment)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
