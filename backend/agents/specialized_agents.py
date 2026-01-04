@@ -4,7 +4,6 @@ Specialized agent implementations
 
 from typing import Dict, Any, List
 import logging
-import asyncio
 from agents.base_agent import BaseAgent
 from integrations.fastino import FastinoTLM
 from integrations.raindrop import LiquidMetalRaindrop
@@ -31,9 +30,7 @@ class ArchitectAgent(BaseAgent):
         Constraints: {task.get('constraints', [])}
         """
 
-        architecture = await self.fastino.generate(
-            prompt=design_prompt, max_tokens=2048, temperature=0.7
-        )
+        architecture = await self.fastino.generate(prompt=design_prompt, max_tokens=2048, temperature=0.7)
 
         return {
             "architecture": architecture,
@@ -101,9 +98,7 @@ class CoderAgent(BaseAgent):
         Style: {self.code_style}
         """
 
-        code = await self.fastino.generate(
-            prompt=code_prompt, max_tokens=2048, temperature=0.5
-        )
+        code = await self.fastino.generate(prompt=code_prompt, max_tokens=2048, temperature=0.5)
 
         # Apply self-healing with LiquidMetal Raindrop
         healed_code = await self.raindrop.heal_code(code)
@@ -225,13 +220,11 @@ class CriticAgent(BaseAgent):
         Architecture: {task.get('architecture', 'N/A')}
         Code: {task.get('code', 'N/A')}
         Execution: {task.get('execution_result', 'N/A')}
-        
+
         Provide constructive criticism and suggestions.
         """
 
-        critique = await self.fastino.generate(
-            prompt=critique_prompt, max_tokens=1024, temperature=0.6
-        )
+        critique = await self.fastino.generate(prompt=critique_prompt, max_tokens=1024, temperature=0.6)
 
         return {
             "critique": critique,

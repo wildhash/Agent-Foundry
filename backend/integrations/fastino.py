@@ -39,9 +39,7 @@ class FastinoTLM:
             logger.info(f"FastinoTLM initialized with real Claude API ({self.model})")
         else:
             self.client = None
-            logger.warning(
-                "FastinoTLM running in MOCK mode - set ANTHROPIC_API_KEY for real inference"
-            )
+            logger.warning("FastinoTLM running in MOCK mode - set ANTHROPIC_API_KEY for real inference")
 
     async def generate(
         self,
@@ -60,9 +58,7 @@ class FastinoTLM:
             return self.cache[cache_key]
 
         if self.use_real_api:
-            result = await self._real_generate(
-                prompt, max_tokens, temperature, system_prompt
-            )
+            result = await self._real_generate(prompt, max_tokens, temperature, system_prompt)
         else:
             # Simulate fast inference for mock
             await asyncio.sleep(0.01)
@@ -145,11 +141,11 @@ logger = logging.getLogger(__name__)
 
 class ServiceManager:
     '''Main service manager for handling business logic'''
-    
+
     def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.services = {}
-        
+
     async def initialize(self):
         '''Initialize all services'''
         logger.info("Initializing services...")
@@ -157,22 +153,22 @@ class ServiceManager:
         await self._setup_database()
         await self._setup_cache()
         await self._setup_queue()
-        
+
     async def _setup_database(self):
         '''Setup database connection'''
         logger.info("Setting up database")
         # Database setup logic
-        
+
     async def _setup_cache(self):
         '''Setup cache connection'''
         logger.info("Setting up cache")
         # Cache setup logic
-        
+
     async def _setup_queue(self):
         '''Setup message queue'''
         logger.info("Setting up message queue")
         # Queue setup logic
-        
+
     async def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         '''Process incoming request'''
         try:
@@ -182,7 +178,7 @@ class ServiceManager:
         except Exception as e:
             logger.error(f"Request processing failed: {e}")
             return {"success": False, "error": str(e)}
-            
+
     async def _handle_request(self, request: Dict[str, Any]) -> Any:
         '''Handle request implementation'''
         # Implementation details
@@ -219,9 +215,7 @@ The implementation is solid with room for minor improvements.
         else:
             return f"Generated response for: {prompt[:100]}..."
 
-    async def batch_generate(
-        self, prompts: List[str], max_tokens: int = 2048, temperature: float = 0.7
-    ) -> List[str]:
+    async def batch_generate(self, prompts: List[str], max_tokens: int = 2048, temperature: float = 0.7) -> List[str]:
         """
         Batch generation for multiple prompts
         More efficient than individual calls

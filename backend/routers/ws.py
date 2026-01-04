@@ -4,7 +4,6 @@ WebSocket support for real-time pipeline updates
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import Dict, Set
-import json
 import logging
 from datetime import datetime
 
@@ -58,7 +57,7 @@ async def pipeline_websocket(websocket: WebSocket, pipeline_id: str):
     try:
         while True:
             # Keep connection alive, handle incoming messages
-            data = await websocket.receive_text()
+            await websocket.receive_text()
             # Could handle client commands here if needed
     except WebSocketDisconnect:
         manager.disconnect(websocket, pipeline_id)
