@@ -15,6 +15,6 @@ from .slippage import SlippageModel
 __all__ = [
     "ExecutionEngine",
     "TWAPAlgorithm",
-    "VWAPAlgorithm", 
+    "VWAPAlgorithm",
     "SlippageModel",
 ]

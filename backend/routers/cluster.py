@@ -142,9 +142,7 @@ async def get_cluster_metrics():
         },
         "redis": {
             "connected": redis_connected,
-            "used_memory_mb": (
-                redis_info.get("used_memory", 0) / 1024 / 1024 if redis_connected else 0
-            ),
+            "used_memory_mb": (redis_info.get("used_memory", 0) / 1024 / 1024 if redis_connected else 0),
         },
         "agents": agent_pool.get_status()["cluster"],
     }

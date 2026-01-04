@@ -16,20 +16,8 @@ async def get_system_metrics(request: Request):
     try:
         metrics = {
             "total_agents": len(orchestrator.agents),
-            "active_pipelines": len(
-                [
-                    p
-                    for p in orchestrator.active_pipelines.values()
-                    if p["status"] == "running"
-                ]
-            ),
-            "completed_pipelines": len(
-                [
-                    p
-                    for p in orchestrator.active_pipelines.values()
-                    if p["status"] == "completed"
-                ]
-            ),
+            "active_pipelines": len([p for p in orchestrator.active_pipelines.values() if p["status"] == "running"]),
+            "completed_pipelines": len([p for p in orchestrator.active_pipelines.values() if p["status"] == "completed"]),
             "evolution_tree": orchestrator.evolution_tree.get_stats(),
         }
 
@@ -116,10 +104,7 @@ async def get_reflexion_metrics(request: Request):
                 [
                     p
                     for p in orchestrator.active_pipelines.values()
-                    if any(
-                        r.get("loops_executed", 0) > 1
-                        for r in p.get("results", {}).values()
-                    )
+                    if any(r.get("loops_executed", 0) > 1 for r in p.get("results", {}).values())
                 ]
             ),
         }

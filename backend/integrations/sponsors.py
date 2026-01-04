@@ -44,9 +44,7 @@ class ClaudeIntegration:
             self.client = anthropic.Anthropic(api_key=api_key)
             logger.info(f"Claude integration initialized with model: {model}")
         except ImportError:
-            raise ImportError(
-                "anthropic package not installed. Run: pip install anthropic"
-            )
+            raise ImportError("anthropic package not installed. Run: pip install anthropic")
         except Exception as e:
             raise RuntimeError(f"Failed to initialize Claude client: {e}")
 
@@ -84,9 +82,7 @@ class ClaudeIntegration:
 
             # Run in thread pool to avoid blocking
             loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(
-                None, lambda: self.client.messages.create(**kwargs)
-            )
+            response = await loop.run_in_executor(None, lambda: self.client.messages.create(**kwargs))
 
             # Extract text from response
             return response.content[0].text
@@ -95,9 +91,7 @@ class ClaudeIntegration:
             logger.error(f"Claude API error: {e}")
             raise
 
-    async def batch_think(
-        self, prompts: List[str], max_tokens: int = 2048, temperature: float = 0.7
-    ) -> List[str]:
+    async def batch_think(self, prompts: List[str], max_tokens: int = 2048, temperature: float = 0.7) -> List[str]:
         """
         Process multiple prompts (sequentially for now)
 
@@ -148,9 +142,7 @@ class FastinoIntegration:
         else:
             logger.warning("Fastino integration unavailable, will use fallback")
 
-    async def generate(
-        self, prompt: str, max_tokens: int = 2048, temperature: float = 0.7
-    ) -> str:
+    async def generate(self, prompt: str, max_tokens: int = 2048, temperature: float = 0.7) -> str:
         """
         Generate text using Fastino or fallback to Claude
 
@@ -196,9 +188,7 @@ class LiquidMetalIntegration:
         else:
             logger.warning("LiquidMetal unavailable, using Docker fallback")
 
-    async def execute_code(
-        self, code: str, language: str = "python", timeout: int = 30
-    ) -> Dict[str, Any]:
+    async def execute_code(self, code: str, language: str = "python", timeout: int = 30) -> Dict[str, Any]:
         """
         Execute code with self-healing or Docker fallback
 
@@ -222,9 +212,7 @@ class LiquidMetalIntegration:
             "exit_code": 0,
         }
 
-    async def _docker_fallback(
-        self, code: str, language: str, timeout: int
-    ) -> Dict[str, Any]:
+    async def _docker_fallback(self, code: str, language: str, timeout: int) -> Dict[str, Any]:
         """
         Fallback execution using Docker SDK
 
@@ -252,9 +240,7 @@ class LiquidMetalIntegration:
             # Create temporary file for code
             import tempfile
 
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=f".{language}", delete=False
-            ) as f:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=f".{language}", delete=False) as f:
                 f.write(code)
                 code_file = f.name
 
@@ -263,14 +249,8 @@ class LiquidMetalIntegration:
                 logger.info(f"Executing {language} code in Docker container")
                 container = client.containers.run(
                     image,
-                    (
-                        f"python {os.path.basename(code_file)}"
-                        if language == "python"
-                        else code
-                    ),
-                    volumes={
-                        os.path.dirname(code_file): {"bind": "/app", "mode": "rw"}
-                    },
+                    (f"python {os.path.basename(code_file)}" if language == "python" else code),
+                    volumes={os.path.dirname(code_file): {"bind": "/app", "mode": "rw"}},
                     working_dir="/app",
                     mem_limit="512m",
                     detach=True,
@@ -333,9 +313,7 @@ class FreepikIntegration:
         else:
             logger.debug("Freepik integration unavailable (optional)")
 
-    async def generate_image(
-        self, prompt: str, width: int = 1024, height: int = 1024
-    ) -> Optional[str]:
+    async def generate_image(self, prompt: str, width: int = 1024, height: int = 1024) -> Optional[str]:
         """
         Generate AI image or return None if unavailable
 

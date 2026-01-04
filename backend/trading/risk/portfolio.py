@@ -16,6 +16,7 @@ from ..core import TradeOrder, OrderSide
 @dataclass
 class Position:
     """Individual position tracking."""
+
     symbol: str
     quantity: float
     avg_entry_price: float
@@ -23,12 +24,12 @@ class Position:
     side: OrderSide
     opened_at: datetime = field(default_factory=datetime.now)
     realized_pnl: float = 0.0
-    
+
     @property
     def market_value(self) -> float:
         """Current market value."""
         return abs(self.quantity) * self.current_price
-    
+
     @property
     def unrealized_pnl(self) -> float:
         """Unrealized P&L."""
@@ -36,7 +37,7 @@ class Position:
             return self.quantity * (self.current_price - self.avg_entry_price)
         else:
             return self.quantity * (self.avg_entry_price - self.current_price)
-    
+
     @property
     def pnl_pct(self) -> float:
         """P&L as percentage of entry value."""
@@ -49,27 +50,27 @@ class Position:
 class PortfolioManager:
     """
     Manages portfolio positions and calculates metrics.
-    
+
     Features:
     - Position tracking and updates
     - P&L calculation (realized and unrealized)
     - Exposure calculations
     - Portfolio statistics
     """
-    
+
     def __init__(self, initial_capital: float = 100000.0):
         self.initial_capital = initial_capital
         self.cash = initial_capital
         self.positions: Dict[str, Position] = {}
         self.trade_history: List[Dict] = []
         self.daily_pnl_history: List[float] = []
-    
+
     @property
     def nav(self) -> float:
         """Net Asset Value = Cash + Market Value of Positions."""
         positions_value = sum(p.market_value for p in self.positions.values())
         return self.cash + positions_value
-    
+
     @property
     def total_exposure(self) -> float:
         """Total exposure as fraction of NAV."""
@@ -77,50 +78,38 @@ class PortfolioManager:
             return 0.0
         total = sum(p.market_value for p in self.positions.values())
         return total / self.nav
-    
+
     @property
     def net_exposure(self) -> float:
         """Net long-short exposure as fraction of NAV."""
         if self.nav == 0:
             return 0.0
-        
-        long_value = sum(
-            p.market_value for p in self.positions.values()
-            if p.side == OrderSide.BUY
-        )
-        short_value = sum(
-            p.market_value for p in self.positions.values()
-            if p.side == OrderSide.SELL
-        )
-        
+
+        long_value = sum(p.market_value for p in self.positions.values() if p.side == OrderSide.BUY)
+        short_value = sum(p.market_value for p in self.positions.values() if p.side == OrderSide.SELL)
+
         return (long_value - short_value) / self.nav
-    
+
     @property
     def total_unrealized_pnl(self) -> float:
         """Total unrealized P&L across all positions."""
         return sum(p.unrealized_pnl for p in self.positions.values())
-    
+
     def update_price(self, symbol: str, price: float):
         """
         Update current price for a position.
-        
+
         Args:
             symbol: Trading symbol
             price: Current price
         """
         if symbol in self.positions:
             self.positions[symbol].current_price = price
-    
-    def open_position(
-        self,
-        symbol: str,
-        quantity: float,
-        price: float,
-        side: OrderSide
-    ):
+
+    def open_position(self, symbol: str, quantity: float, price: float, side: OrderSide):
         """
         Open a new position or add to existing.
-        
+
         Args:
             symbol: Trading symbol
             quantity: Number of units
@@ -128,11 +117,11 @@ class PortfolioManager:
             side: Buy or sell
         """
         cost = quantity * price
-        
+
         if symbol in self.positions:
             # Add to existing position
             pos = self.positions[symbol]
-            
+
             if pos.side == side:
                 # Same direction - average in
                 total_qty = pos.quantity + quantity
@@ -148,7 +137,7 @@ class PortfolioManager:
                         realized = -realized
                     pos.realized_pnl += realized
                     self.cash += realized
-                    
+
                     remaining = quantity - pos.quantity
                     if remaining > 0:
                         # Reverse position
@@ -169,45 +158,43 @@ class PortfolioManager:
         else:
             # New position
             self.positions[symbol] = Position(
-                symbol=symbol,
-                quantity=quantity,
-                avg_entry_price=price,
-                current_price=price,
-                side=side
+                symbol=symbol, quantity=quantity, avg_entry_price=price, current_price=price, side=side
             )
-        
+
         # Adjust cash
         if side == OrderSide.BUY:
             self.cash -= cost
         else:
             self.cash += cost
-        
+
         # Record trade
-        self.trade_history.append({
-            "timestamp": datetime.now(),
-            "symbol": symbol,
-            "side": side.value,
-            "quantity": quantity,
-            "price": price,
-            "value": cost
-        })
-    
+        self.trade_history.append(
+            {
+                "timestamp": datetime.now(),
+                "symbol": symbol,
+                "side": side.value,
+                "quantity": quantity,
+                "price": price,
+                "value": cost,
+            }
+        )
+
     def close_position(self, symbol: str, price: float) -> float:
         """
         Close entire position.
-        
+
         Args:
             symbol: Trading symbol
             price: Close price
-            
+
         Returns:
             Realized P&L
         """
         if symbol not in self.positions:
             return 0.0
-        
+
         pos = self.positions[symbol]
-        
+
         # Calculate P&L
         if pos.side == OrderSide.BUY:
             realized = pos.quantity * (price - pos.avg_entry_price)
@@ -215,46 +202,42 @@ class PortfolioManager:
         else:
             realized = pos.quantity * (pos.avg_entry_price - price)
             self.cash -= pos.quantity * price
-        
+
         # Record trade
-        self.trade_history.append({
-            "timestamp": datetime.now(),
-            "symbol": symbol,
-            "side": "close",
-            "quantity": pos.quantity,
-            "price": price,
-            "realized_pnl": realized
-        })
-        
+        self.trade_history.append(
+            {
+                "timestamp": datetime.now(),
+                "symbol": symbol,
+                "side": "close",
+                "quantity": pos.quantity,
+                "price": price,
+                "realized_pnl": realized,
+            }
+        )
+
         # Remove position
         del self.positions[symbol]
-        
+
         return realized
-    
+
     def get_position(self, symbol: str) -> Optional[Position]:
         """Get position for symbol."""
         return self.positions.get(symbol)
-    
+
     def get_portfolio_stats(self) -> Dict:
         """
         Calculate portfolio statistics.
-        
+
         Returns:
             Dictionary of portfolio metrics
         """
         # Position counts
-        long_count = sum(
-            1 for p in self.positions.values()
-            if p.side == OrderSide.BUY
-        )
-        short_count = sum(
-            1 for p in self.positions.values()
-            if p.side == OrderSide.SELL
-        )
-        
+        long_count = sum(1 for p in self.positions.values() if p.side == OrderSide.BUY)
+        short_count = sum(1 for p in self.positions.values() if p.side == OrderSide.SELL)
+
         # P&L stats
         total_realized = sum(p.realized_pnl for p in self.positions.values())
-        
+
         # Daily returns (if history available)
         if len(self.daily_pnl_history) > 1:
             returns = np.array(self.daily_pnl_history)
@@ -263,7 +246,7 @@ class PortfolioManager:
         else:
             sharpe = 0.0
             max_dd = 0.0
-        
+
         return {
             "nav": self.nav,
             "cash": self.cash,
@@ -278,16 +261,16 @@ class PortfolioManager:
             "return_pct": f"{(self.nav / self.initial_capital - 1):.2%}",
             "sharpe_ratio": sharpe,
             "max_drawdown": f"{max_dd:.2%}",
-            "trade_count": len(self.trade_history)
+            "trade_count": len(self.trade_history),
         }
-    
+
     def _calculate_max_drawdown(self, returns: np.ndarray) -> float:
         """Calculate maximum drawdown from returns series."""
         cumulative = np.cumprod(1 + returns)
         running_max = np.maximum.accumulate(cumulative)
         drawdowns = (running_max - cumulative) / running_max
         return np.max(drawdowns)
-    
+
     def record_daily_pnl(self):
         """Record end of day P&L for statistics."""
         if self.daily_pnl_history:
@@ -295,9 +278,9 @@ class PortfolioManager:
             daily_return = (self.nav - prev_nav) / prev_nav if prev_nav > 0 else 0
         else:
             daily_return = (self.nav / self.initial_capital) - 1
-        
+
         self.daily_pnl_history.append(self.nav)
-    
+
     def get_positions_summary(self) -> List[Dict]:
         """Get summary of all positions."""
         return [
@@ -310,7 +293,7 @@ class PortfolioManager:
                 "market_value": pos.market_value,
                 "unrealized_pnl": pos.unrealized_pnl,
                 "pnl_pct": f"{pos.pnl_pct:.2%}",
-                "weight": pos.market_value / self.nav if self.nav > 0 else 0
+                "weight": pos.market_value / self.nav if self.nav > 0 else 0,
             }
             for pos in self.positions.values()
         ]
