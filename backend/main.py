@@ -9,12 +9,12 @@ from contextlib import asynccontextmanager
 
 from agents.worker_pool import agent_pool
 from agents.infrastructure_agent import infra_agent
-from routers import cluster
+from agents.merge_agent import MergeAgent
+from routers import cluster, merge
+from config import settings
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -25,6 +25,21 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 Starting Agent Foundry Cluster...")
     await agent_pool.initialize()
     await infra_agent.start()
+
+    # Initialize merge agent if GitHub credentials are provided
+    if settings.GITHUB_TOKEN and settings.GITHUB_REPO_OWNER and settings.GITHUB_REPO_NAME:
+        logger.info("🔀 Initializing Merge Agent...")
+        app.state.merge_agent = MergeAgent(
+            agent_id="merge_agent_primary",
+            github_token=settings.GITHUB_TOKEN,
+            repo_owner=settings.GITHUB_REPO_OWNER,
+            repo_name=settings.GITHUB_REPO_NAME,
+        )
+        logger.info("✅ Merge Agent initialized")
+    else:
+        logger.info("⚠️ Merge Agent not initialized (GitHub credentials not provided)")
+        app.state.merge_agent = None
+
     logger.info("✅ Cluster online and self-healing enabled")
 
     yield
@@ -54,12 +69,15 @@ app.add_middleware(
 
 # Include routers
 app.include_router(cluster.router)
+app.include_router(merge.router, prefix="/merge", tags=["merge"])
 
 
 @app.get("/")
 async def root():
     """Health check and cluster overview"""
     status = agent_pool.get_status()
+
+    merge_agent_status = "initialized" if app.state.merge_agent else "not_configured"
 
     return {
         "message": "🤖 Agent Foundry Cluster Online",
@@ -69,6 +87,7 @@ async def root():
             "healthy": status["cluster"]["healthy_workers"],
         },
         "infrastructure_monitoring": infra_agent.is_running,
+        "merge_agent": merge_agent_status,
         "docs": "/docs",
     }
 
