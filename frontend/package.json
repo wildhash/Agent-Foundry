@@ -15,8 +15,8 @@
     "react-dom": "18.2.0",
     "axios": "1.13.2",
     "d3": "7.9.0",
-    "recharts": "2.10.3",
-    "swr": "2.3.8"
+    "recharts": "3.5.1",
+    "swr": "2.3.7"
   },
   "devDependencies": {
     "@types/node": "24.10.1",
