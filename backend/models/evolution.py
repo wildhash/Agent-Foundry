@@ -1,41 +1,132 @@
 """
-Evolution Tree model for tracking agent lineage and performance
+Evolution Tree model with database persistence
 """
 
 from typing import Dict, Any, List, Optional
 import networkx as nx
 from datetime import datetime
+from sqlalchemy.orm import Session
+from models.database import EvolutionNode as EvolutionNodeDB
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class EvolutionTree:
     """
     Tracks agent evolution across generations
-    Uses NetworkX for graph operations
+    Uses NetworkX for in-memory operations, SQLAlchemy for persistence
     """
 
-    def __init__(self):
+    def __init__(self, db_session: Optional[Session] = None):
         self.graph = nx.DiGraph()
         self.generations: Dict[int, List[str]] = {}
+        self.db_session = db_session
 
     def add_node(
         self,
         node_id: str,
         generation: int,
         performance_score: float,
+        agent_type: str = "unknown",
+        parent_id: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ):
-        """Add a node to the evolution tree"""
+        """Add a node to the evolution tree and persist to database"""
+        timestamp = datetime.now()
+
+        # Add to in-memory graph
         self.graph.add_node(
             node_id,
             generation=generation,
             performance_score=performance_score,
+            agent_type=agent_type,
+            parent_id=parent_id,
             metadata=metadata or {},
-            created_at=datetime.now().isoformat(),
+            created_at=timestamp.isoformat(),
         )
 
         if generation not in self.generations:
             self.generations[generation] = []
         self.generations[generation].append(node_id)
+
+        # Add edge if parent exists
+        if parent_id and parent_id in self.graph:
+            self.graph.add_edge(parent_id, node_id)
+
+        # Persist to database if session available
+        if self.db_session:
+            self._persist_node(
+                node_id,
+                generation,
+                performance_score,
+                agent_type,
+                parent_id,
+                metadata,
+                timestamp,
+            )
+
+    def _persist_node(
+        self,
+        node_id: str,
+        generation: int,
+        performance_score: float,
+        agent_type: str,
+        parent_id: Optional[str],
+        metadata: Optional[Dict[str, Any]],
+        timestamp: datetime,
+    ):
+        """Persist node to database"""
+        try:
+            db_node = EvolutionNodeDB(
+                id=node_id,
+                parent_id=parent_id,
+                agent_type=agent_type,
+                generation=generation,
+                performance_score=performance_score,
+                extra_data=metadata,
+                created_at=timestamp,
+            )
+            self.db_session.add(db_node)
+            self.db_session.commit()
+            logger.debug(f"Persisted evolution node: {node_id}")
+        except Exception as e:
+            logger.error(f"Failed to persist evolution node: {e}")
+            self.db_session.rollback()
+
+    def load_from_database(self):
+        """Load existing nodes from database"""
+        if not self.db_session:
+            logger.warning("No database session, cannot load evolution tree")
+            return
+
+        try:
+            nodes = self.db_session.query(EvolutionNodeDB).all()
+
+            for node in nodes:
+                self.graph.add_node(
+                    node.id,
+                    generation=node.generation,
+                    performance_score=node.performance_score,
+                    agent_type=node.agent_type,
+                    parent_id=node.parent_id,
+                    metadata=node.extra_data or {},
+                    created_at=node.created_at.isoformat()
+                    if node.created_at
+                    else None,
+                )
+
+                if node.generation not in self.generations:
+                    self.generations[node.generation] = []
+                self.generations[node.generation].append(node.id)
+
+                if node.parent_id and node.parent_id in self.graph:
+                    self.graph.add_edge(node.parent_id, node.id)
+
+            logger.info(f"Loaded {len(nodes)} evolution nodes from database")
+
+        except Exception as e:
+            logger.error(f"Failed to load evolution tree: {e}")
 
     def add_edge(self, parent_id: str, child_id: str):
         """Add parent-child relationship"""

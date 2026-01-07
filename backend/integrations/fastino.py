@@ -1,26 +1,45 @@
 """
-Fastino TLM Integration - 99x faster inference
-Mock implementation for development
+Fastino TLM Integration - Now with real Claude API backend
+Falls back to mock for development without API key
 """
 
 from typing import Dict, Any, Optional, List
 import logging
 import asyncio
+import os
 
 logger = logging.getLogger(__name__)
+
+# Check for Anthropic SDK
+try:
+    from anthropic import AsyncAnthropic
+
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+    logger.warning("Anthropic SDK not installed, using mock mode")
 
 
 class FastinoTLM:
     """
     Fastino Transformer Language Model
-    Provides 99x faster inference compared to standard models
+    Uses Claude API for real inference, falls back to mock without API key
     """
 
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key
+        self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
+        self.use_real_api = bool(self.api_key) and ANTHROPIC_AVAILABLE
         self.speed_multiplier = 99
         self.batch_size = 32
         self.cache = {}
+        self.model = os.getenv("LLM_MODEL", "claude-sonnet-4-20250514")
+
+        if self.use_real_api:
+            self.client = AsyncAnthropic(api_key=self.api_key)
+            logger.info(f"FastinoTLM initialized with real Claude API ({self.model})")
+        else:
+            self.client = None
+            logger.warning("FastinoTLM running in MOCK mode - set ANTHROPIC_API_KEY for real inference")
 
     async def generate(
         self,
@@ -28,40 +47,58 @@ class FastinoTLM:
         max_tokens: int = 2048,
         temperature: float = 0.7,
         top_p: float = 0.9,
+        system_prompt: Optional[str] = None,
     ) -> str:
-        """
-        Generate text using Fastino TLM
-
-        Args:
-            prompt: Input prompt
-            max_tokens: Maximum tokens to generate
-            temperature: Sampling temperature
-            top_p: Nucleus sampling parameter
-
-        Returns:
-            Generated text
-        """
-        logger.info(f"Fastino TLM generating (speed: {self.speed_multiplier}x)")
+        """Generate text using Claude API or mock fallback"""
 
         # Check cache first
         cache_key = f"{prompt[:50]}_{max_tokens}_{temperature}"
         if cache_key in self.cache:
-            logger.info("Returning cached result")
+            logger.debug("Returning cached result")
             return self.cache[cache_key]
 
-        # Simulate fast inference (0.01s vs 1s for standard models)
-        await asyncio.sleep(0.01)
-
-        # Mock generation based on prompt type
-        result = self._mock_generate(prompt, max_tokens)
+        if self.use_real_api:
+            result = await self._real_generate(prompt, max_tokens, temperature, system_prompt)
+        else:
+            # Simulate fast inference for mock
+            await asyncio.sleep(0.01)
+            result = self._mock_generate(prompt, max_tokens)
 
         # Cache result
         self.cache[cache_key] = result
-
         return result
 
+    async def _real_generate(
+        self,
+        prompt: str,
+        max_tokens: int,
+        temperature: float,
+        system_prompt: Optional[str] = None,
+    ) -> str:
+        """Real Claude API call"""
+        try:
+            messages = [{"role": "user", "content": prompt}]
+
+            kwargs = {
+                "model": self.model,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "messages": messages,
+            }
+
+            if system_prompt:
+                kwargs["system"] = system_prompt
+
+            response = await self.client.messages.create(**kwargs)
+            return response.content[0].text
+
+        except Exception as e:
+            logger.error(f"Claude API error: {e}")
+            # Fallback to mock on API failure
+            return self._mock_generate(prompt, max_tokens)
+
     def _mock_generate(self, prompt: str, max_tokens: int) -> str:
-        """Mock text generation for development"""
+        """Mock text generation for development/testing"""
 
         if "design a system" in prompt.lower():
             return """
@@ -104,11 +141,11 @@ logger = logging.getLogger(__name__)
 
 class ServiceManager:
     '''Main service manager for handling business logic'''
-    
+
     def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.services = {}
-        
+
     async def initialize(self):
         '''Initialize all services'''
         logger.info("Initializing services...")
@@ -116,22 +153,22 @@ class ServiceManager:
         await self._setup_database()
         await self._setup_cache()
         await self._setup_queue()
-        
+
     async def _setup_database(self):
         '''Setup database connection'''
         logger.info("Setting up database")
         # Database setup logic
-        
+
     async def _setup_cache(self):
         '''Setup cache connection'''
         logger.info("Setting up cache")
         # Cache setup logic
-        
+
     async def _setup_queue(self):
         '''Setup message queue'''
         logger.info("Setting up message queue")
         # Queue setup logic
-        
+
     async def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         '''Process incoming request'''
         try:
@@ -141,7 +178,7 @@ class ServiceManager:
         except Exception as e:
             logger.error(f"Request processing failed: {e}")
             return {"success": False, "error": str(e)}
-            
+
     async def _handle_request(self, request: Dict[str, Any]) -> Any:
         '''Handle request implementation'''
         # Implementation details
