@@ -11,6 +11,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def _sanitize_for_log(value: str) -> str:
+    """
+    Remove newline and carriage return characters to prevent log injection.
+    """
+    if value is None:
+        return ""
+    return value.replace("\r", "").replace("\n", "")
+
+
 class ConnectionManager:
     """Manages WebSocket connections for pipeline updates"""
 
@@ -22,7 +31,8 @@ class ConnectionManager:
         if pipeline_id not in self.active_connections:
             self.active_connections[pipeline_id] = set()
         self.active_connections[pipeline_id].add(websocket)
-        logger.info(f"WebSocket connected for pipeline {pipeline_id}")
+        safe_pipeline_id = _sanitize_for_log(pipeline_id)
+        logger.info(f"WebSocket connected for pipeline {safe_pipeline_id}")
 
     def disconnect(self, websocket: WebSocket, pipeline_id: str):
         if pipeline_id in self.active_connections:
