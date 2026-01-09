@@ -50,7 +50,8 @@ class MergeAgent(BaseAgent):
         }
 
         # Initialize GitHub client if credentials provided
-        if github_token and repo_owner and repo_name:
+        # Support both new format (repo_owner + repo_name) and old format (just repo_name with "owner/repo")
+        if github_token and repo_name:
             self._initialize_github_client()
 
     def _initialize_github_client(self):
@@ -59,8 +60,14 @@ class MergeAgent(BaseAgent):
             from github import Github
 
             self.github_client = Github(self.github_token)
-            self.repo = self.github_client.get_repo(self.repo_name)
-            logger.info(f"Initialized GitHub client for repo: {self.repo_name}")
+            # Support both old format (owner/repo) and new format (separate owner and repo)
+            if self.repo_owner:
+                repo_full_name = f"{self.repo_owner}/{self.repo_name}"
+            else:
+                # Backward compatibility: repo_name might contain "owner/repo"
+                repo_full_name = self.repo_name
+            self.repo = self.github_client.get_repo(repo_full_name)
+            logger.info(f"Initialized GitHub client for repo: {repo_full_name}")
         except ImportError:
             logger.warning("PyGithub not installed. Install with: pip install PyGithub")
         except Exception as e:
