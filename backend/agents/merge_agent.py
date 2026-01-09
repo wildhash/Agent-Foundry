@@ -17,20 +17,6 @@ class MergeAgent(BaseAgent):
 
     Monitors repository for open PRs, evaluates mergeability criteria,
     and automatically merges eligible PRs or cleans up stale branches.
-    """
-
-    def __init__(self, agent_id: str, github_token: Optional[str] = None, repo_name: Optional[str] = None):
-        super().__init__(agent_id, "merger")
-        self.github_token = github_token or os.getenv("GITHUB_TOKEN")
-        self.repo_name = repo_name
-        self.github_client = None
-        self.repo = None
-        self.merge_strategy = "merge"  # Options: merge, squash, rebase
-        self.stale_branch_days = 90  # Days before considering branch stale
-        self.min_approvals = 1
-        self.require_ci_pass = True
-
-        if self.github_token and self.repo_name:
     Evaluates PRs for mergeability based on configurable criteria.
     """
 
@@ -47,6 +33,12 @@ class MergeAgent(BaseAgent):
         self.repo_name = repo_name
         self.github_client = None
         self.repo = None
+
+        # Legacy attributes for backward compatibility
+        self.merge_strategy = "merge"  # Options: merge, squash, rebase
+        self.stale_branch_days = 90  # Days before considering branch stale
+        self.min_approvals = 1
+        self.require_ci_pass = True
 
         # Default merge criteria
         self.merge_criteria = {
@@ -396,14 +388,6 @@ class MergeAgent(BaseAgent):
             f"stale_days={self.stale_branch_days}, min_approvals={self.min_approvals}, "
             f"require_ci={self.require_ci_pass}"
         )
-            self.repo = self.github_client.get_repo(f"{self.repo_owner}/{self.repo_name}")
-            logger.info(f"GitHub client initialized for {self.repo_owner}/{self.repo_name}")
-        except ImportError:
-            logger.error("PyGithub not installed. Install with: pip install PyGithub")
-            self.github_client = None
-        except Exception as e:
-            logger.error(f"Failed to initialize GitHub client: {str(e)}")
-            self.github_client = None
 
     async def execute(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """

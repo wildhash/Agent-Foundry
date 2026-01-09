@@ -491,12 +491,6 @@ class TestStrategyAdjustment:
         await merge_agent._adjust_strategy("performance_improvement")
 
         assert merge_agent.min_approvals == 2
-Tests for Merge Agent
-"""
-
-import pytest
-from unittest.mock import Mock, MagicMock, patch
-from datetime import datetime, timedelta
 
 
 @pytest.fixture
