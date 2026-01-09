@@ -65,6 +65,12 @@ class MergeAgent(BaseAgent):
                 repo_full_name = f"{self.repo_owner}/{self.repo_name}"
             else:
                 # Backward compatibility: repo_name might contain "owner/repo"
+                if "/" not in self.repo_name:
+                    logger.error(
+                        f"Invalid repo_name format: '{self.repo_name}'. " "Expected 'owner/repo' or use repo_owner parameter."
+                    )
+                    self.github_client = None
+                    return
                 repo_full_name = self.repo_name
             self.repo = self.github_client.get_repo(repo_full_name)
             logger.info(f"Initialized GitHub client for repo: {repo_full_name}")
