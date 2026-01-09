@@ -17,20 +17,6 @@ class MergeAgent(BaseAgent):
 
     Monitors repository for open PRs, evaluates mergeability criteria,
     and automatically merges eligible PRs or cleans up stale branches.
-    """
-
-    def __init__(self, agent_id: str, github_token: Optional[str] = None, repo_name: Optional[str] = None):
-        super().__init__(agent_id, "merger")
-        self.github_token = github_token or os.getenv("GITHUB_TOKEN")
-        self.repo_name = repo_name
-        self.github_client = None
-        self.repo = None
-        self.merge_strategy = "merge"  # Options: merge, squash, rebase
-        self.stale_branch_days = 90  # Days before considering branch stale
-        self.min_approvals = 1
-        self.require_ci_pass = True
-
-        if self.github_token and self.repo_name:
     Evaluates PRs for mergeability based on configurable criteria.
     """
 
@@ -48,6 +34,12 @@ class MergeAgent(BaseAgent):
         self.github_client = None
         self.repo = None
 
+        # Legacy attributes for backward compatibility
+        self.merge_strategy = "merge"  # Options: merge, squash, rebase
+        self.stale_branch_days = 90  # Days before considering branch stale
+        self.min_approvals = 1
+        self.require_ci_pass = True
+
         # Default merge criteria
         self.merge_criteria = {
             "required_approvals": 1,
@@ -58,7 +50,8 @@ class MergeAgent(BaseAgent):
         }
 
         # Initialize GitHub client if credentials provided
-        if github_token and repo_owner and repo_name:
+        # Support both new format (repo_owner + repo_name) and old format (just repo_name with "owner/repo")
+        if github_token and repo_name:
             self._initialize_github_client()
 
     def _initialize_github_client(self):
@@ -67,8 +60,20 @@ class MergeAgent(BaseAgent):
             from github import Github
 
             self.github_client = Github(self.github_token)
-            self.repo = self.github_client.get_repo(self.repo_name)
-            logger.info(f"Initialized GitHub client for repo: {self.repo_name}")
+            # Support both old format (owner/repo) and new format (separate owner and repo)
+            if self.repo_owner:
+                repo_full_name = f"{self.repo_owner}/{self.repo_name}"
+            else:
+                # Backward compatibility: repo_name might contain "owner/repo"
+                if "/" not in self.repo_name:
+                    logger.error(
+                        f"Invalid repo_name format: '{self.repo_name}'. " f"Expected 'owner/repo' or use repo_owner parameter."
+                    )
+                    self.github_client = None
+                    return
+                repo_full_name = self.repo_name
+            self.repo = self.github_client.get_repo(repo_full_name)
+            logger.info(f"Initialized GitHub client for repo: {repo_full_name}")
         except ImportError:
             logger.warning("PyGithub not installed. Install with: pip install PyGithub")
         except Exception as e:
@@ -396,14 +401,6 @@ class MergeAgent(BaseAgent):
             f"stale_days={self.stale_branch_days}, min_approvals={self.min_approvals}, "
             f"require_ci={self.require_ci_pass}"
         )
-            self.repo = self.github_client.get_repo(f"{self.repo_owner}/{self.repo_name}")
-            logger.info(f"GitHub client initialized for {self.repo_owner}/{self.repo_name}")
-        except ImportError:
-            logger.error("PyGithub not installed. Install with: pip install PyGithub")
-            self.github_client = None
-        except Exception as e:
-            logger.error(f"Failed to initialize GitHub client: {str(e)}")
-            self.github_client = None
 
     async def execute(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
