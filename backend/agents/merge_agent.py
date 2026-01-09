@@ -67,7 +67,7 @@ class MergeAgent(BaseAgent):
                 # Backward compatibility: repo_name might contain "owner/repo"
                 if "/" not in self.repo_name:
                     logger.error(
-                        f"Invalid repo_name format: '{self.repo_name}'. " "Expected 'owner/repo' or use repo_owner parameter."
+                        f"Invalid repo_name format: '{self.repo_name}'. " f"Expected 'owner/repo' or use repo_owner parameter."
                     )
                     self.github_client = None
                     return
